@@ -1,0 +1,572 @@
+index.html<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CGLD Premier League</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #080c12;
+    color: white;
+}
+
+header {
+    background: linear-gradient(135deg, #111827, #172554);
+    text-align: center;
+    padding: 35px 15px;
+    border-bottom: 3px solid #22c55e;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 32px;
+}
+
+header p {
+    color: #cbd5e1;
+}
+
+.container {
+    max-width: 1000px;
+    margin: auto;
+    padding: 20px;
+}
+
+.card {
+    background: #111827;
+    border: 1px solid #263244;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+h2 {
+    margin-top: 0;
+}
+
+/* TABLE */
+
+.table-container {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 650px;
+}
+
+th, td {
+    padding: 12px 8px;
+    text-align: center;
+    border-bottom: 1px solid #263244;
+}
+
+th {
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+td:nth-child(2),
+th:nth-child(2) {
+    text-align: left;
+}
+
+.team {
+    font-weight: bold;
+}
+
+.points {
+    font-weight: bold;
+}
+
+/* RESULTS */
+
+.result {
+    background: #0b1220;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.score {
+    font-size: 21px;
+    font-weight: bold;
+}
+
+/* ADMIN */
+
+select,
+input,
+button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 7px;
+    margin-bottom: 12px;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    background: #020617;
+    color: white;
+    font-size: 16px;
+}
+
+button {
+    background: #22c55e;
+    color: #052e16;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+.danger {
+    background: #991b1b;
+    color: white;
+}
+
+.note {
+    color: #94a3b8;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+footer {
+    text-align: center;
+    color: #64748b;
+    padding: 25px;
+}
+
+@media(max-width:600px) {
+
+    header h1 {
+        font-size: 25px;
+    }
+
+    .container {
+        padding: 12px;
+    }
+
+    .card {
+        padding: 15px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+
+<h1>⚽ CGLD PREMIER LEAGUE</h1>
+
+<p>Official College Football Match Centre</p>
+
+</header>
+
+<div class="container">
+
+<!-- LEAGUE TABLE -->
+
+<div class="card">
+
+<h2>🏆 League Table</h2>
+
+<div class="table-container">
+
+<table>
+
+<thead>
+
+<tr>
+<th>#</th>
+<th>Team</th>
+<th>P</th>
+<th>W</th>
+<th>D</th>
+<th>L</th>
+<th>GF</th>
+<th>GA</th>
+<th>GD</th>
+<th>PTS</th>
+</tr>
+
+</thead>
+
+<tbody id="tableBody"></tbody>
+
+</table>
+
+</div>
+
+</div>
+
+
+<!-- MATCH RESULTS -->
+
+<div class="card">
+
+<h2>⚽ Match Results</h2>
+
+<div id="results"></div>
+
+</div>
+
+
+<!-- ADMIN -->
+
+<div class="card">
+
+<h2>🔐 Update Match</h2>
+
+<p class="note">
+Only the administrator should use this section.
+Enter the score after a match and the league table will update automatically.
+</p>
+
+<label>Team 1</label>
+
+<select id="team1">
+
+<option>LEON</option>
+<option>BARAQ</option>
+<option>NESHER</option>
+<option>DUNAMIS</option>
+
+</select>
+
+
+<label>Team 1 Goals</label>
+
+<input id="score1" type="number" min="0" value="0">
+
+
+<label>Team 2</label>
+
+<select id="team2">
+
+<option>BARAQ</option>
+<option>LEON</option>
+<option>NESHER</option>
+<option>DUNAMIS</option>
+
+</select>
+
+
+<label>Team 2 Goals</label>
+
+<input id="score2" type="number" min="0" value="0">
+
+
+<button onclick="addMatch()">
+ADD MATCH RESULT
+</button>
+
+
+<button class="danger" onclick="clearMatches()">
+CLEAR ALL RESULTS
+</button>
+
+</div>
+
+</div>
+
+<footer>
+
+CGLD Premier League • 2026
+
+</footer>
+
+
+<script>
+
+const teams = [
+    "LEON",
+    "BARAQ",
+    "NESHER",
+    "DUNAMIS"
+];
+
+let matches =
+JSON.parse(localStorage.getItem("cgldMatches")) || [];
+
+
+function calculateTable() {
+
+    let table = {};
+
+    teams.forEach(team => {
+
+        table[team] = {
+            played: 0,
+            wins: 0,
+            draws: 0,
+            losses: 0,
+            gf: 0,
+            ga: 0,
+            gd: 0,
+            points: 0
+        };
+
+    });
+
+
+    matches.forEach(match => {
+
+        let a = table[match.team1];
+        let b = table[match.team2];
+
+        a.played++;
+        b.played++;
+
+        a.gf += match.score1;
+        a.ga += match.score2;
+
+        b.gf += match.score2;
+        b.ga += match.score1;
+
+
+        if (match.score1 > match.score2) {
+
+            a.wins++;
+            b.losses++;
+
+            a.points += 3;
+
+        }
+
+        else if (match.score2 > match.score1) {
+
+            b.wins++;
+            a.losses++;
+
+            b.points += 3;
+
+        }
+
+        else {
+
+            a.draws++;
+            b.draws++;
+
+            a.points++;
+            b.points++;
+
+        }
+
+    });
+
+
+    teams.forEach(team => {
+
+        table[team].gd =
+            table[team].gf -
+            table[team].ga;
+
+    });
+
+
+    return Object.entries(table).sort(
+        (a,b) =>
+
+        b[1].points - a[1].points ||
+
+        b[1].gd - a[1].gd ||
+
+        b[1].gf - a[1].gf
+
+    );
+
+}
+
+
+function displayTable() {
+
+    let body =
+    document.getElementById("tableBody");
+
+    body.innerHTML = "";
+
+
+    let table = calculateTable();
+
+
+    table.forEach((item,index) => {
+
+        let team = item[0];
+        let s = item[1];
+
+        body.innerHTML += `
+
+        <tr>
+
+        <td>${index + 1}</td>
+
+        <td class="team">${team}</td>
+
+        <td>${s.played}</td>
+
+        <td>${s.wins}</td>
+
+        <td>${s.draws}</td>
+
+        <td>${s.losses}</td>
+
+        <td>${s.gf}</td>
+
+        <td>${s.ga}</td>
+
+        <td>${s.gd >= 0 ? "+" : ""}${s.gd}</td>
+
+        <td class="points">${s.points}</td>
+
+        </tr>
+
+        `;
+
+    });
+
+}
+
+
+function displayResults() {
+
+    let results =
+    document.getElementById("results");
+
+    results.innerHTML = "";
+
+
+    if (matches.length === 0) {
+
+        results.innerHTML =
+        `<p class="note">No matches played yet.</p>`;
+
+        return;
+
+    }
+
+
+    matches.slice().reverse().forEach(match => {
+
+        results.innerHTML += `
+
+        <div class="result">
+
+        <strong>${match.team1}</strong>
+
+        <span class="score">
+
+        ${match.score1} - ${match.score2}
+
+        </span>
+
+        <strong>${match.team2}</strong>
+
+        </div>
+
+        `;
+
+    });
+
+}
+
+
+function addMatch() {
+
+    let team1 =
+    document.getElementById("team1").value;
+
+    let team2 =
+    document.getElementById("team2").value;
+
+    let score1 =
+    Number(document.getElementById("score1").value);
+
+    let score2 =
+    Number(document.getElementById("score2").value);
+
+
+    if (team1 === team2) {
+
+        alert("Please select two different teams.");
+
+        return;
+
+    }
+
+
+    if (score1 < 0 || score2 < 0) {
+
+        alert("Score cannot be negative.");
+
+        return;
+
+    }
+
+
+    matches.push({
+
+        team1: team1,
+        score1: score1,
+
+        team2: team2,
+        score2: score2
+
+    });
+
+
+    localStorage.setItem(
+        "cgldMatches",
+        JSON.stringify(matches)
+    );
+
+
+    displayTable();
+    displayResults();
+
+
+    alert("Match result added!");
+
+}
+
+
+function clearMatches() {
+
+    if (
+        confirm(
+            "Are you sure you want to delete all match results?"
+        )
+    ) {
+
+        matches = [];
+
+        localStorage.removeItem("cgldMatches");
+
+        displayTable();
+        displayResults();
+
+    }
+
+}
+
+
+displayTable();
+displayResults();
+
+</script>
+
+</body>
+  </html>
